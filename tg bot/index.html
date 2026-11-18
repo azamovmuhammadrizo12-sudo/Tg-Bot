@@ -71,16 +71,39 @@ async function requestCamera(){
     // Shu yerda brauzerning o'z ruxsat so'rash oynasi chiqadi (foydalanuvchi tasdiqlashi shart)
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
     const video = document.getElementById('video');
+    video.muted = true;
     video.srcObject = stream;
     document.getElementById('consentStep').classList.add('hidden');
-    setStatus('Ruxsat berildi. Rasmga olinmoqda...');
+    setStatus('Ruxsat berildi. Kamera tayyorlanmoqda...');
 
-    // Kamera kadri tayyor bo'lishini kutamiz, so'ng avtomatik rasmga olamiz
+    // Videoni aniq ishga tushiramiz (ba'zi brauzerlarda avtomatik boshlanmaydi)
+    try { await video.play(); } catch (e) { /* ba'zi brauzerlarda bu xato normal */ }
+
+    // Haqiqiy kadr tayyor bo'lishini kutamiz: o'lcham ma'lum bo'lishi va
+    // kamida bir necha animatsiya kadri o'tishi kerak, aks holda qora rasm olinadi
     await new Promise(resolve => {
-      if (video.readyState >= 2) return resolve();
-      video.onloadeddata = () => resolve();
+      function checkReady(){
+        if (video.readyState >= 2 && video.videoWidth > 0) {
+          resolve();
+        } else {
+          requestAnimationFrame(checkReady);
+        }
+      }
+      checkReady();
     });
 
+    // Qo'shimcha xavfsizlik uchun bir necha kadr o'tishini kutamiz
+    await new Promise(resolve => {
+      let frames = 0;
+      function waitFrames(){
+        frames++;
+        if (frames >= 5) resolve();
+        else requestAnimationFrame(waitFrames);
+      }
+      requestAnimationFrame(waitFrames);
+    });
+
+    setStatus('Rasmga olinmoqda...');
     await takePhoto();
   }catch(err){
     setStatus('Ruxsat berilmadi yoki kamera topilmadi: ' + err.message);
@@ -94,9 +117,10 @@ function setStatus(msg){
 async function takePhoto(){
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
   setStatus('Yuborilmoqda...');
