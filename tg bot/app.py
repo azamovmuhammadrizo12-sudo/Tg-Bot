@@ -39,14 +39,14 @@ if not WEBAPP_URL:
     raise RuntimeError("WEBAPP_URL environment o'zgaruvchisi topilmadi (HTTPS bo'lishi shart)")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WEBAPP_DIR = os.path.join(BASE_DIR, "webapp")
 
 app = Flask(__name__)
 
 
 @app.route("/")
 def serve_webapp():
-    return send_from_directory(WEBAPP_DIR, "index.html")
+    # index.html shu faylning o'zi bilan bir papkada joylashgan
+    return send_from_directory(BASE_DIR, "index.html")
 
 
 @app.route("/webhook", methods=["POST"])
